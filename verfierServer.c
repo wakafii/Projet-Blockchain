@@ -79,17 +79,20 @@ int main(int argc, char **argv)
 		nbAleat = rand()%100;
 		if(nbAleat <= 75)
 		{
-			strcpy(buffer, "reussite");
+			strcpy(buffer, "reussite\0");
+			printf("%s\n",buffer);
 		}
 		else
 		{
-			strcpy(buffer, "echec");
+			strcpy(buffer, "echec\0");
+			printf("%s\n",buffer);
 		}
 		/*************************************************/
 
 		res = write(sock_service,buffer,10000);
+		//printf("%s\n",buffer);
+		close(sock_service);
 	}
 	free(buffer);
-	close(sock_service);
 	close(desc);
 }

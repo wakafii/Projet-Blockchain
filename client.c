@@ -6,7 +6,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <time.h>
 
+void delay(unsigned int milliseconds){
+
+    clock_t start = clock();
+    while((clock() - start) * 1000 / CLOCKS_PER_SEC < milliseconds);
+}
 
 int creaSocket(int Domaine, int Type, int Protocole, int Port)
 {
@@ -43,9 +49,11 @@ int main(int argc, char **argv)
 	int port = htons(8000);
 	int sock_service;
 	int fin = 0;
-	int nbAleat = 0;	
+	int nbAleat = 0;
+	int compt = 0;	
 
 	char* buffer = (char*)calloc(10000,sizeof(char));
+	char* buffer_res = (char*)calloc(50,sizeof(char));
 	/*strcpy(buffer, "GET /");
 	strcat(buffer, argv[3]);
 	strcat(buffer, " HTTP/1.1\n");
@@ -68,17 +76,17 @@ int main(int argc, char **argv)
 	nbAleat = rand()%100;
 	strcpy(buffer, "a478er58fgt54 7865dfghj521edfgn87541rf");
 
-	if(/*nbAleat <= 50*/1)
-	{
+	/*if(nbAleat <= 50)
+	{*/
 
 		/*******************************************************
 		************ Provenance verifier ***********************
 		*******************************************************/
-		printf("dedans");
-		hp = gethostbyname(argv[1]);
+		//printf("dedans\n");
+		hp = gethostbyname(argv[1]);	//pour recuperer l'@ip de la cible
 		if(hp == NULL)
 		{
-			perror("");
+			perror("erreur1");
 			exit(0);
 		}
 		addr_dest.sin_family = AF_INET;
@@ -94,13 +102,16 @@ int main(int argc, char **argv)
 		}
 
 		if(write(desc, (void*)buffer,10000)<0){
-			perror("");
+			perror("erreur2");
 			exit(0);
 		}
 		if(read(desc, (void*)buffer,10000)<0){
-			perror("");
+			perror("erreur3");
 			exit(0);
 		}
+		printf("%s\n",buffer);
+
+		
 
 		/******************************************************/
 
@@ -109,8 +120,21 @@ int main(int argc, char **argv)
 		******************* Traitement message ****************
 		******************************************************/
 
-		if(buffer == "echec"){nbAleat = 1;}
-		else{nbAleat = 50;}
+		compt = 0;
+		while(buffer[compt] != '\0')
+		{
+			buffer_res[compt] = buffer[compt];
+			compt++;
+		}
+		if(strcmp(buffer_res, "echec") == 0)
+		{
+			printf("KO\n");
+			nbAleat = 1;
+		}
+		else
+		{
+			nbAleat = 50;
+		}
 
 		/*****************************************************/
 
@@ -154,6 +178,7 @@ int main(int argc, char **argv)
 				perror("");
 				exit(0);
 			}
+			printf("%s\n",buffer);
 
 			/******************************************************/
 
@@ -161,13 +186,50 @@ int main(int argc, char **argv)
 			******************* Traitement message ****************
 			******************************************************/
 
-			if(buffer == "echec"){nbAleat = 1;}
+			compt = 0;
+			while(buffer[compt] != '\0')
+			{
+				buffer_res[compt] = buffer[compt];
+				compt++;
+			}
+
+			if(strcmp(buffer_res, "echec") == 0)
+			{
+				printf("KOKO\n");
+				nbAleat = 1;
+			}
+			else
+			{
+				nbAleat = 50;
+			}
 
 			/*****************************************************/
 
 			if(nbAleat == 50)
 			{
+				close(desc);
+				desc = creaSocket(AF_INET,SOCK_STREAM,0,port);
+				if(desc == -1)
+				{
+					exit(0);
+				}
+				hp = gethostbyname(argv[3]);
+				if(hp == NULL)
+				{
+					perror("");
+					exit(0);
+				}
+				addr_dest.sin_family = AF_INET;
+				addr_dest.sin_port = htons(atoi(argv[4]));
+				memcpy(&addr_dest.sin_addr.s_addr, hp->h_addr,hp->h_length);
 
+				res = connect(desc, (struct sockaddr *)&addr_dest, sizeof(addr_dest));
+				if(res == -1)
+				{
+					perror("fail connect 2");
+					exit(0);
+				}				
+				
 				strcpy(buffer, "f56fsf44fsfsf8ff1fds3fzgg");
 
 				if(write(desc, (void*)buffer,10000)<0){
@@ -178,11 +240,10 @@ int main(int argc, char **argv)
 					perror("");
 					exit(0);
 				}
+				printf("%s\n",buffer);
 			}
 		}
-
-		printf("%s\n",buffer);
-	}
+	//}
 
 	close(desc);
 }
