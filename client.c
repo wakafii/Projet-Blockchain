@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 	int fin = 0;
 	int nbAleat = 0;	
 
-	char* buffer = (char*)malloc(10000*sizeof(char));
+	char* buffer = (char*)calloc(10000,sizeof(char));
 	/*strcpy(buffer, "GET /");
 	strcat(buffer, argv[3]);
 	strcat(buffer, " HTTP/1.1\n");
@@ -60,38 +60,89 @@ int main(int argc, char **argv)
 	struct sockaddr_in addr_dest;
 	struct hostent *hp;
 
-	while(!fin)
+	desc = creaSocket(AF_INET,SOCK_STREAM,0,port);
+	if(desc == -1)
+	{
+		exit(0);
+	}
+	nbAleat = rand()%100;
+	strcpy(buffer, "a478er58fgt54 7865dfghj521edfgn87541rf");
+
+	if(/*nbAleat <= 50*/1)
 	{
 
-		desc = creaSocket(AF_INET,SOCK_STREAM,0,port);
-		if(desc == -1)
+		/*******************************************************
+		************ Provenance verifier ***********************
+		*******************************************************/
+		printf("dedans");
+		hp = gethostbyname(argv[1]);
+		if(hp == NULL)
 		{
+			perror("");
 			exit(0);
 		}
-		nbAleat = rand()%10000;
-		strcpy(buffer, "a478er58fgt54 7865dfghj521edfgn87541rf");
+		addr_dest.sin_family = AF_INET;
+		addr_dest.sin_port = htons(atoi(argv[2]));
+		memcpy(&addr_dest.sin_addr.s_addr, hp->h_addr,hp->h_length);
+		memset(addr_dest.sin_zero,0,8);
 
+		res = connect(desc, (struct sockaddr *)&addr_dest, sizeof(addr_dest));
+		if(res == -1)
+		{
+			perror("fail connect 1");
+			exit(0);
+		}
+
+		if(write(desc, (void*)buffer,10000)<0){
+			perror("");
+			exit(0);
+		}
+		if(read(desc, (void*)buffer,10000)<0){
+			perror("");
+			exit(0);
+		}
+
+		/******************************************************/
+
+
+		/******************************************************
+		******************* Traitement message ****************
+		******************************************************/
+
+		if(buffer == "echec"){nbAleat = 1;}
+		else{nbAleat = 50;}
+
+		/*****************************************************/
+
+
+		/*****************************************************
+		************ Cloud Serveur ***************************
+		*****************************************************/
 		if(nbAleat == 50)
 		{
+			close(desc);
+			desc = creaSocket(AF_INET,SOCK_STREAM,0,port);
+			if(desc == -1)
+			{
+				exit(0);
+			}
 
-			/*******************************************************
-			************ Provenance verifier ***********************
-			*******************************************************/
-			hp = gethostbyname(argv[1]);
+			strcpy(buffer, "a478er58fgt54");
+
+			hp = gethostbyname(argv[3]);
 			if(hp == NULL)
 			{
 				perror("");
 				exit(0);
 			}
 			addr_dest.sin_family = AF_INET;
-			addr_dest.sin_port = htons(atoi(argv[2]));
+			addr_dest.sin_port = htons(atoi(argv[4]));
 			memcpy(&addr_dest.sin_addr.s_addr, hp->h_addr,hp->h_length);
-			memset(addr_dest.sin_zero,0,8);
 
 			res = connect(desc, (struct sockaddr *)&addr_dest, sizeof(addr_dest));
 			if(res == -1)
 			{
-				perror("fail connect 1");
+				perror("fail connect 2");
 				exit(0);
 			}
 
@@ -106,7 +157,6 @@ int main(int argc, char **argv)
 
 			/******************************************************/
 
-
 			/******************************************************
 			******************* Traitement message ****************
 			******************************************************/
@@ -115,37 +165,10 @@ int main(int argc, char **argv)
 
 			/*****************************************************/
 
-
-			/*****************************************************
-			************ Cloud Serveur ***************************
-			*****************************************************/
 			if(nbAleat == 50)
 			{
-				close(desc);
-				desc = creaSocket(AF_INET,SOCK_STREAM,0,port);
-				if(desc == -1)
-				{
-					exit(0);
-				}
 
-				strcpy(buffer, "a478er58fgt54");
-
-				hp = gethostbyname(argv[3]);
-				if(hp == NULL)
-				{
-					perror("");
-					exit(0);
-				}
-				addr_dest.sin_family = AF_INET;
-				addr_dest.sin_port = htons(atoi(argv[4]));
-				memcpy(&addr_dest.sin_addr.s_addr, hp->h_addr,hp->h_length);
-
-				res = connect(desc, (struct sockaddr *)&addr_dest, sizeof(addr_dest));
-				if(res == -1)
-				{
-					perror("fail connect 2");
-					exit(0);
-				}
+				strcpy(buffer, "f56fsf44fsfsf8ff1fds3fzgg");
 
 				if(write(desc, (void*)buffer,10000)<0){
 					perror("");
@@ -155,35 +178,11 @@ int main(int argc, char **argv)
 					perror("");
 					exit(0);
 				}
-
-				/******************************************************/
-
-				/******************************************************
-				******************* Traitement message ****************
-				******************************************************/
-
-				if(buffer == "echec"){nbAleat = 1;}
-
-				/*****************************************************/
-
-				if(nbAleat == 50)
-				{
-
-					strcpy(buffer, "f56fsf44fsfsf8ff1fds3fzgg");
-
-					if(write(desc, (void*)buffer,10000)<0){
-						perror("");
-						exit(0);
-					}
-					if(read(desc, (void*)buffer,10000)<0){
-						perror("");
-						exit(0);
-					}
-				}
 			}
-
-			printf("%s\n",buffer);
 		}
+
+		printf("%s\n",buffer);
 	}
+
 	close(desc);
 }

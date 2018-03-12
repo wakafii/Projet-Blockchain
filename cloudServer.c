@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 
 	struct sockaddr_in addr_env;
 	int longueur = sizeof(addr_env);
-	char* buffer = (char*)malloc(10000*sizeof(char));
+	char* buffer = (char*)calloc(10000,sizeof(char));
 	while(!fin)
 	{
 		sock_service = accept(desc, (struct sockaddr *)&addr_env, &longueur);
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 
 
 			res = write(sock_service,buffer,10000);
-			printf("%s\n",buffer);
+			//printf("%s\n",buffer);
 		}
 	}
 	free(buffer);
