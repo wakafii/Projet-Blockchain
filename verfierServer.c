@@ -61,6 +61,11 @@ int main(int argc, char **argv)
 	struct sockaddr_in addr_env;
 	int longueur = sizeof(addr_env);
 	char* buffer = (char*)calloc(10000,sizeof(char));
+	char* buffer_addr = (char*)calloc(10000,sizeof(char));
+	char* buffer_key = (char*)calloc(10000,sizeof(char));
+	int compt;
+	int compt2;
+
 	while(!fin)
 	{
 		sock_service = accept(desc, (struct sockaddr *)&addr_env, &longueur);
@@ -72,6 +77,26 @@ int main(int argc, char **argv)
 
 		res = read(sock_service,buffer,10000);
 		printf("%s\n",buffer);
+
+		compt = 0;
+		while(buffer[compt] != ' ')
+		{
+			buffer_addr[compt] = buffer[compt];
+			compt++;
+		}
+		buffer_addr[compt] = '\0';
+
+		compt2 = 0;
+		compt++;
+		while(buffer[compt] != '\0')
+		{
+			buffer_key[compt2] = buffer[compt];
+			compt++;
+			compt2++;
+		}
+		buffer_key[compt2] = '\0';
+	
+		printf("%s\n%s\n",buffer_addr,buffer_key);
 
 		/**************************************************
 		**************** traitement message ***************

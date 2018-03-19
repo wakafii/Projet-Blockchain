@@ -126,6 +126,8 @@ int main(int argc, char **argv)
 			buffer_res[compt] = buffer[compt];
 			compt++;
 		}
+		buffer_res[compt] = '\0';
+		
 		if(strcmp(buffer_res, "echec") == 0)
 		{
 			printf("KO\n");
@@ -192,6 +194,7 @@ int main(int argc, char **argv)
 				buffer_res[compt] = buffer[compt];
 				compt++;
 			}
+			buffer_res[compt] = '\0';
 
 			if(strcmp(buffer_res, "echec") == 0)
 			{
