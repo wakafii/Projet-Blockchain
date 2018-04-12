@@ -6,9 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include "util/EpidMessage.h"
-#include "util/fileio.h"
-#include "verifyprocess.h"
 
 int creaSocket(int Domaine, int Type, int Protocole, int Port)
 {
@@ -48,7 +45,7 @@ int main(int argc, char **argv)
 	
 	if(argc != 2)
 	{
-		printf("How to use: ./verifier port_number ");
+		printf("How to use: ./member port_number ");
 		exit(EXIT_FAILURE);
 	}
 	
@@ -75,12 +72,8 @@ int main(int argc, char **argv)
 
 	while(!fin)
 	{
-		char fn_key[70];
-		char fn_sig[70];
-		char msg_file[85];
-		char sig_file[85];
-		char **args;
-		EpidMessage em;
+		//char **args;
+		char id;
 		
 		sock_service = accept(desc, (struct sockaddr *)&addr_env, &size);
 		if(sock_service == -1)
@@ -89,68 +82,28 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 		
-		//Receive the EpidMessage
-		if(read(sock_service, (EpidMessage*)&em, sizeof(em)) < (int)sizeof(em))
+		//Receive the ID
+		if(read(sock_service, (char*)&id, 65) < 65)
 		{
-			 fprintf(stderr, "ERROR: Failed to read EpidMessage. bytes read: %d/%lu.(errno = %d)\n", res, sizeof(EpidMessage), errno);
+			 fprintf(stderr, "ERROR: Failed to read EpidMessage. bytes read.(errno = %d)\n", errno);
        exit(EXIT_FAILURE);
 		}
-		printf("SUCCESS: EpidMessage received. \n");
-	  printf("hash received: %s\n", em.id);
-		
-		//Receive the Signature
-		strcpy(fn_sig, em.id);
-		strcat(fn_sig, ".dat");
-		if(receivefile(sock_service, fn_sig, em.sig_size))
-		{
-			 fprintf(stderr, "ERROR: Failed to receive the Signature.(errno = %d)\n", errno);
-       exit(EXIT_FAILURE);
-		}
-		printf("SUCCESS: Signature received. \n");
-		
-		//Receive the member's Public Key
-		strcpy(fn_key, em.id);
-		strcat(fn_key, ".txt");
-		if(receivefile(sock_service, fn_key, em.msg_size))
-		{
-			 fprintf(stderr, "ERROR: Failed to receive the Public Key.(errno = %d)\n", errno);
-       exit(EXIT_FAILURE);
-		}
-		printf("SUCCESS: Key received. \n");
+		printf("SUCCESS: ID received. \n");
+	  printf("ID received: %s\n", id);
+	  
+	  /** PARSE BLOCKCHAIN **/
+	  
+	  /** START OPENVPN **/
+	  
+	  /** NOTIFY CLIENT **/
 		
 
 		/**************************************************
 		**************** traitement message ***************
 		**************************************************/
 		
-		/*************************************************/
 		
-		args = (char **) malloc(3 * sizeof(char*));
-		for(i=0; i<3; i++)
-		{
-     	args[i] = (char *)calloc(100, sizeof(char));
-		}
 		
-		printf("allocation args\n");
-					
-		//args setup
-		strcpy(sig_file, "--sig=");
-		strcat(sig_file, fn_sig);
-		strcpy(msg_file, "--msgfile=");
-		strcat(msg_file, fn_key);
-		
-		strcpy(args[0], "./verifysig");
-		strcpy(args[1], sig_file);
-		strcpy(args[2], msg_file);
-		
-		printf("setup args\n");
-		
-		if(verifyprocess(3, args) == EXIT_FAILURE)
-		{
-			fprintf(stderr, "ERROR: Failed to verify the Signature.(errno = %d)\n", errno);
-      exit(EXIT_FAILURE);
-		}
-
 		//printf("%s\n",buffer);
 		close(sock_service);
 	}
