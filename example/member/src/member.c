@@ -76,6 +76,11 @@ int main(int argc, char **argv)
 	strcat(buffer,"\n\n");*/
 	struct sockaddr_in addr_dest;
 	struct hostent *hp;
+	char* buffer = (char*)calloc(10,sizeof(char));
+	char* buffer_key = (char*)calloc(10,sizeof(char));
+	int compt = 0;
+	int nbAleat = 0;
+	int pid = 0;
 	
 	if(argc != 3)
 	{
@@ -156,21 +161,38 @@ int main(int argc, char **argv)
 		fprintf(stderr, "ERROR: Failed to send file %s (errno = %d)\n", FILENAME, errno);
 		exit(EXIT_FAILURE);
 	}
+
+		res = read(desc,buffer,10);
+
+		compt = 0;
+		while(buffer[compt] != '\0')
+		{
+			buffer_key[compt] = buffer[compt];
+			compt++;
+		}
+		buffer_key[compt] = '\0';
+
+		if(strcmp(buffer_key, "failure") == 0)
+		{
+			nbAleat = 1;
+		}
+		else if(strcmp(buffer_key, "success") == 0)
+		{
+			nbAleat = 50;
+		}
 	
 	/*****************************************************
 	************ Cloud Serveur ***************************
 	*****************************************************/
-	/*
+
 	if(nbAleat == 50)
 	{
 		close(desc);
-		desc = creaSocket(AF_INET,SOCK_STREAM,0,port);
+		desc = creaSocket(AF_INET,SOCK_STREAM,0,0);
 		if(desc == -1)
 		{
 			exit(EXIT_FAILURE);
 		}
-
-		strcpy(buffer, "a478er58fgt54");
 
 		hp = gethostbyname(argv[3]);
 		if(hp == NULL)
@@ -185,19 +207,44 @@ int main(int argc, char **argv)
 		res = connect(desc, (struct sockaddr *)&addr_dest, sizeof(addr_dest));
 		if(res == -1)
 		{
-			perror("fail connect 2");
+			perror("Failed to connect to the Cloud");
 			exit(EXIT_FAILURE);
+		}
+	
+		//Send the EpidMessage
+		if(write(desc, em.id,sizeof(em.id))<0){
+				perror("Failed to write to cloud");
+				exit(EXIT_FAILURE);
 		}
 
-		if(write(desc, (void*)buffer,10000)<0){
-			perror("");
-			exit(EXIT_FAILURE);
+		res = read(desc,buffer,10);
+
+		compt = 0;
+		while(buffer[compt] != '\0')
+		{
+			buffer_key[compt] = buffer[compt];
+			compt++;
 		}
-		if(read(desc, (void*)buffer,10000)<0){
-			perror("");
-			exit(EXIT_FAILURE);
+		buffer_key[compt] = '\0';
+
+		if(strcmp(buffer_key, "failure") == 0)
+		{
+			nbAleat = 1;
 		}
-		printf("%s\n",buffer);
+		else if(strcmp(buffer_key, "success") == 0)
+		{
+			nbAleat = 50;
+		}
+
+		if(nbAleat == 50)
+		{
+			pid = fork();
+			if(pid == 0)
+			{
+				close(desc);
+				system(scriptMember.sh);
+			}
+		}
 
 		/******************************************************/
 
@@ -262,8 +309,9 @@ int main(int argc, char **argv)
 			}
 			printf("%s\n",buffer);
 		}
+		*/
 	}
-	*/
+
 	close(desc);
 	return EXIT_SUCCESS;
 }
