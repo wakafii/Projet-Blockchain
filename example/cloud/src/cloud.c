@@ -6,6 +6,29 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include "util/md5pair.h"
+
+int createfile(char* command, char* filename)
+{
+	FILE* w;
+	fp = popen(command, "r");
+		if (fp == NULL)
+		{
+			printf("popen() failed\n");
+			return -1;
+		}	
+		w = fopen(filename, "rb+");
+
+		while ((c = fgetc(fp)) != EOF)
+				fputc(c, w);
+
+		status = pclose(fp);
+		if (status == -1) {
+				printf("popen() failed\n");
+				return -1;
+		}
+		return 0;
+}
 
 int creaSocket(int Domaine, int Type, int Protocole, int Port)
 {
@@ -42,6 +65,7 @@ int main(int argc, char **argv)
 	int fin = 0;
 	socklen_t size;
 	struct sockaddr_in addr_env;
+
 	
 	if(argc != 2)
 	{
@@ -74,6 +98,15 @@ int main(int argc, char **argv)
 	{
 		//char **args;
 		char id;
+		int fd;
+		FILE *fp;
+		int status;
+		int c, i;
+		char command[150];
+		char* bc_checksum;
+		char* member_checksum;
+		size_t md5cs_size;
+		char answer[8];
 		
 		sock_service = accept(desc, (struct sockaddr *)&addr_env, &size);
 		if(sock_service == -1)
@@ -85,13 +118,62 @@ int main(int argc, char **argv)
 		//Receive the ID
 		if(read(sock_service, (char*)&id, 65) < 65)
 		{
-			 fprintf(stderr, "ERROR: Failed to read EpidMessage. bytes read.(errno = %d)\n", errno);
+			 fprintf(stderr, "ERROR: Failed to read ID. (errno = %d)\n", errno);
        exit(EXIT_FAILURE);
 		}
 		printf("SUCCESS: ID received. \n");
 	  printf("ID received: %s\n", id);
+		
+		//receive the length of the checksum
+		if(read(sock_service, (int*)&md5cs_size, sizeof(int)) < (int)sizeof(int))
+		{
+			 fprintf(stderr, "ERROR: Failed to read the md5 checksum size. (errno = %d)\n", errno);
+       exit(EXIT_FAILURE);
+		}
+		printf("SUCCESS: md5 size received. \n");
+	  printf("md5 size: %d\n", md5cs_size);
+		
+		//receive the md5 checksum
+		member_checksum = (char*) malloc(md5cs_size * sizeof(char));
+		if(read(sock_service, (char*)member_checksum, md5cs_size) < md5cs_size)
+		{
+			 fprintf(stderr, "ERROR: Failed to read the md5 checksum. (errno = %d)\n", errno);
+       exit(EXIT_FAILURE);
+		}		
+	  printf("SUCCESS: md5 received. \n");
+	  printf("md5: %s\n", member_checksum);
 	  
-	  /** PARSE BLOCKCHAIN **/
+	  //Query the blockchain and put the result in a file
+		strcpy(command, "multichain-cli chain2 liststreamkeys stream1 ");
+		strcat(command, id);
+		createfile(command, "query.txt");
+		
+		//Parse the query
+		i=0;
+		fp = popen("./jq-linux64 -R query.txt", "r");
+		if (fp == NULL)
+		{
+			printf("popen() failed\n");
+			exit(EXIT_FAILURE);
+		}	
+		bc_checksum =(char*) malloc(md5cs_size * sizeof(char));
+		while ((c = fgetc(fp)) != EOF)
+				bc_checksum[i++] = c;
+				
+		//Compare the two checksums
+		if(strcmp(bc_checksum, member_checksum) == 0)
+		{
+			strcpy(answer, "success");
+		}
+		else
+			strcpy(answer, "failure");
+		
+		if(write(sock_service, (char*)answer, sizeof(answer)) < (int)sizeof(answer))
+		{
+			 fprintf(stderr, "ERROR: Failed to write the answer. (errno = %d)\n", errno);
+       exit(EXIT_FAILURE);
+		}				
+		
 	  
 	  /** START OPENVPN **/
 	  

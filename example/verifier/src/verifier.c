@@ -81,6 +81,9 @@ int main(int argc, char **argv)
 		char sig_file[85];
 		char **args;
 		EpidMessage em;
+		char answer[50];
+		int pid;
+		
 		
 		sock_service = accept(desc, (struct sockaddr *)&addr_env, &size);
 		if(sock_service == -1)
@@ -147,9 +150,28 @@ int main(int argc, char **argv)
 		
 		if(verifyprocess(3, args) == EXIT_FAILURE)
 		{
-			fprintf(stderr, "ERROR: Failed to verify the Signature.(errno = %d)\n", errno);
-      exit(EXIT_FAILURE);
+			//printf("Failed to verify the Signature\n");
+      strcpy(answer, "failure");
 		}
+		else
+		{
+			strcpy(answer, "success");
+			//write in blockchain
+			pid = fork();
+			if(pid == 0)
+			{
+				execlp("multichain-cli", "multichain-cli", "chain2", "publish", "stream1", em.id, em.md5cs);		
+			}
+		}		
+		
+		//Send the answer
+		if(read(sock_service, (char*)answer, sizeof(answer)) < (int)sizeof(answer)))
+		{
+			 fprintf(stderr, "ERROR: Failed to send Answer.(errno = %d)\n", errno);
+       exit(EXIT_FAILURE);
+		}
+		printf("SUCCESS: Answer sent \n");		
+		
 
 		//printf("%s\n",buffer);
 		close(sock_service);
