@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="50" failures="0" disabled="0" errors="0" timestamp="2018-04-09T09:39:22" time="0.007" name="AllTests">
+  <testsuite name="EcGroupObjTest" tests="10" failures="0" disabled="0" errors="0" time="0.004">
+    <testcase name="ObjDefaultConstructedIsNotNull" status="run" time="0" classname="EcGroupObjTest" />
+    <testcase name="AssignmentCopiesPointer" status="run" time="0" classname="EcGroupObjTest" />
+    <testcase name="CopyConstructorCopiesPointer" status="run" time="0.001" classname="EcGroupObjTest" />
+    <testcase name="ConstructorDoesNotThrow" status="run" time="0.001" classname="EcGroupObjTest" />
+    <testcase name="CanCastConstToConstPointer" status="run" time="0" classname="EcGroupObjTest" />
+    <testcase name="CanGetConstPointerFromConst" status="run" time="0" classname="EcGroupObjTest" />
+    <testcase name="CanCastNonConstToConstPointer" status="run" time="0" classname="EcGroupObjTest" />
+    <testcase name="CanGetConstPointerFromNonConst" status="run" time="0" classname="EcGroupObjTest" />
+    <testcase name="CanCastNonConstToNonConstPointer" status="run" time="0.001" classname="EcGroupObjTest" />
+    <testcase name="CanGetNonConstPointerFromNonConst" status="run" time="0" classname="EcGroupObjTest" />
+  </testsuite>
+  <testsuite name="EcPointObjTest" tests="9" failures="0" disabled="0" errors="0" time="0.002">
+    <testcase name="ObjDefaultConstructedIsNotNull" status="run" time="0" classname="EcPointObjTest" />
+    <testcase name="AssignmentDoesNotCopyPointer" status="run" time="0.001" classname="EcPointObjTest" />
+    <testcase name="CopyConstructorDoesNotCopyPointer" status="run" time="0" classname="EcPointObjTest" />
+    <testcase name="CanCastConstToConstPointer" status="run" time="0" classname="EcPointObjTest" />
+    <testcase name="CanGetConstPointerFromConst" status="run" time="0" classname="EcPointObjTest" />
+    <testcase name="CanCastNonConstToConstPointer" status="run" time="0.001" classname="EcPointObjTest" />
+    <testcase name="CanGetConstPointerFromNonConst" status="run" time="0" classname="EcPointObjTest" />
+    <testcase name="CanCastNonConstToNonConstPointer" status="run" time="0" classname="EcPointObjTest" />
+    <testcase name="CanGetNonConstPointerFromNonConst" status="run" time="0" classname="EcPointObjTest" />
+  </testsuite>
+  <testsuite name="FiniteFieldObjTest" tests="10" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="ObjDefaultConstructedIsNotNull" status="run" time="0" classname="FiniteFieldObjTest" />
+    <testcase name="AssignmentCopiesPointer" status="run" time="0" classname="FiniteFieldObjTest" />
+    <testcase name="CopyConstructorCopiesPointer" status="run" time="0" classname="FiniteFieldObjTest" />
+    <testcase name="ConstructorDoesNotThrow" status="run" time="0" classname="FiniteFieldObjTest" />
+    <testcase name="CanCastConstToConstPointer" status="run" time="0" classname="FiniteFieldObjTest" />
+    <testcase name="CanGetConstPointerFromConst" status="run" time="0" classname="FiniteFieldObjTest" />
+    <testcase name="CanCastNonConstToConstPointer" status="run" time="0" classname="FiniteFieldObjTest" />
+    <testcase name="CanGetConstPointerFromNonConst" status="run" time="0" classname="FiniteFieldObjTest" />
+    <testcase name="CanCastNonConstToNonConstPointer" status="run" time="0" classname="FiniteFieldObjTest" />
+    <testcase name="CanGetNonConstPointerFromNonConst" status="run" time="0" classname="FiniteFieldObjTest" />
+  </testsuite>
+  <testsuite name="BigNumObjTest" tests="11" failures="0" disabled="0" errors="0" time="0">
+    <testcase name="ObjDefaultConstructedIsNotNull" status="run" time="0" classname="BigNumObjTest" />
+    <testcase name="ObjConstructedWithSizeIsNotNull" status="run" time="0" classname="BigNumObjTest" />
+    <testcase name="AssignmentDoesNotCopyPointer" status="run" time="0" classname="BigNumObjTest" />
+    <testcase name="CopyConstructorDoesNotCopyPointer" status="run" time="0" classname="BigNumObjTest" />
+    <testcase name="ConstructorDoesNotThrow" status="run" time="0" classname="BigNumObjTest" />
+    <testcase name="CanCastConstToConstPointer" status="run" time="0" classname="BigNumObjTest" />
+    <testcase name="CanGetConstPointerFromConst" status="run" time="0" classname="BigNumObjTest" />
+    <testcase name="CanCastNonConstToConstPointer" status="run" time="0" classname="BigNumObjTest" />
+    <testcase name="CanGetConstPointerFromNonConst" status="run" time="0" classname="BigNumObjTest" />
+    <testcase name="CanCastNonConstToNonConstPointer" status="run" time="0" classname="BigNumObjTest" />
+    <testcase name="CanGetNonConstPointerFromNonConst" status="run" time="0" classname="BigNumObjTest" />
+  </testsuite>
+  <testsuite name="FfElementObjTest" tests="10" failures="0" disabled="0" errors="0" time="0">
+    <testcase name="ObjDefaultConstructedIsNotNull" status="run" time="0" classname="FfElementObjTest" />
+    <testcase name="AssignmentDoesNotCopyPointer" status="run" time="0" classname="FfElementObjTest" />
+    <testcase name="CopyConstructorDoesNotCopyPointer" status="run" time="0" classname="FfElementObjTest" />
+    <testcase name="CanConstructBinomialElement" status="run" time="0" classname="FfElementObjTest" />
+    <testcase name="CanCastConstToConstPointer" status="run" time="0" classname="FfElementObjTest" />
+    <testcase name="CanGetConstPointerFromConst" status="run" time="0" classname="FfElementObjTest" />
+    <testcase name="CanCastNonConstToConstPointer" status="run" time="0" classname="FfElementObjTest" />
+    <testcase name="CanGetConstPointerFromNonConst" status="run" time="0" classname="FfElementObjTest" />
+    <testcase name="CanCastNonConstToNonConstPointer" status="run" time="0" classname="FfElementObjTest" />
+    <testcase name="CanGetNonConstPointerFromNonConst" status="run" time="0" classname="FfElementObjTest" />
+  </testsuite>
+</testsuites>

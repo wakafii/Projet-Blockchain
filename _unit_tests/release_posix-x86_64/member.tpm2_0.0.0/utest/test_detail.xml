@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="62" failures="0" disabled="0" errors="0" timestamp="2018-04-09T09:39:25" time="0.147" name="AllTests">
+  <testsuite name="EpidTpm2Test" tests="43" failures="0" disabled="0" errors="0" time="0.134">
+    <testcase name="CommitComputeKLESha256" status="run" time="0.013" classname="EpidTpm2Test" />
+    <testcase name="CommitComputeKLESha384" status="run" time="0.007" classname="EpidTpm2Test" />
+    <testcase name="CommitComputeKLESha512" status="run" time="0.007" classname="EpidTpm2Test" />
+    <testcase name="CommitComputeKLESha512256" status="run" time="0.007" classname="EpidTpm2Test" />
+    <testcase name="CommitComputeEOnly" status="run" time="0.004" classname="EpidTpm2Test" />
+    <testcase name="CommitComputeEOnlyWithDefaultP1" status="run" time="0.004" classname="EpidTpm2Test" />
+    <testcase name="GetRandomFailsGivenNullParameters" status="run" time="0" classname="EpidTpm2Test" />
+    <testcase name="GetRandomReturnsDifferentBufs" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="GetRandomCanGenerateLongStream" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="CreatePrimaryFailsGivenNullParameters" status="run" time="0" classname="EpidTpm2Test" />
+    <testcase name="CreatePrimaryWorksGivenValidParameter" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="CreateFailsGivenNullParameters" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="CreateSucceedsGivenValidParameters" status="run" time="0" classname="EpidTpm2Test" />
+    <testcase name="DeleteWorksGivenNullTpm2Ctx" status="run" time="0" classname="EpidTpm2Test" />
+    <testcase name="DeleteNullsTpm2Ctx" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="SignProducesKnownSignature" status="run" time="0.002" classname="EpidTpm2Test" />
+    <testcase name="CommitFailsGivenNullParameters" status="run" time="0.002" classname="EpidTpm2Test" />
+    <testcase name="CommitFailsGivenInvalidLength" status="run" time="0.002" classname="EpidTpm2Test" />
+    <testcase name="CommitFailsGivenPrivateKeyDoesNotExists" status="run" time="0.002" classname="EpidTpm2Test" />
+    <testcase name="CommitFailsGivenS2y2NotOnCurve" status="run" time="0.002" classname="EpidTpm2Test" />
+    <testcase name="CommitFailsIfResultIsAtInfinity" status="run" time="0.005" classname="EpidTpm2Test" />
+    <testcase name="CommitCanUseKeyLoadedByLoadExternal" status="run" time="0.004" classname="EpidTpm2Test" />
+    <testcase name="CommitReturnsSameLEForSameP1P2" status="run" time="0.005" classname="EpidTpm2Test" />
+    <testcase name="CommitCanBeUsedTwice" status="run" time="0.003" classname="EpidTpm2Test" />
+    <testcase name="CommitCanUseHashFromEcHashSha256" status="run" time="0.006" classname="EpidTpm2Test" />
+    <testcase name="CommitCanUseHashFromEcHashSha384" status="run" time="0.005" classname="EpidTpm2Test" />
+    <testcase name="CommitCanUseHashFromEcHashSha512" status="run" time="0.005" classname="EpidTpm2Test" />
+    <testcase name="LoadExternalCanLoadFValueSha384" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="LoadExternalCanLoadFValueSha512" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="LoadExternalCanLoadFValueSha512_256" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="SignProducesValidSignature" status="run" time="0.007" classname="EpidTpm2Test" />
+    <testcase name="SignProducesValidSignatureTwoTimes" status="run" time="0.013" classname="EpidTpm2Test" />
+    <testcase name="SignFailsGivenNullParameters" status="run" time="0.003" classname="EpidTpm2Test" />
+    <testcase name="SignFailsGivenInvalidDigestLen" status="run" time="0.003" classname="EpidTpm2Test" />
+    <testcase name="SignFailsGivenUnrecognizedCounter" status="run" time="0.002" classname="EpidTpm2Test" />
+    <testcase name="SignFailsGivenPreviouslyUsedCounter" status="run" time="0.003" classname="EpidTpm2Test" />
+    <testcase name="SignFailsIfKeyNotSet" status="run" time="0.002" classname="EpidTpm2Test" />
+    <testcase name="ReleaseCounterFailsGivenNullPtr" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="ReleaseCounterSuccessfullyReleasesCounter" status="run" time="0.004" classname="EpidTpm2Test" />
+    <testcase name="GetRandomGetsExpectedDataForGivenSeed" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="SetHashAlgFailsIfHashAlgNotSupported" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="LoadExternalFailsGivenNullParameters" status="run" time="0.001" classname="EpidTpm2Test" />
+    <testcase name="LoadExternalCanLoadFValueSha256" status="run" time="0" classname="EpidTpm2Test" />
+  </testsuite>
+  <testsuite name="NvTest" tests="19" failures="0" disabled="0" errors="0" time="0.012">
+    <testcase name="CanStoreMembershipCredential" status="run" time="0" classname="NvTest" />
+    <testcase name="CanUseOffset" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvDefineSpaceFailsGivenNullParameters" status="run" time="0" classname="NvTest" />
+    <testcase name="NvDefineSpaceCanAllocateSpace" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvDefineSpaceCatchReDefinition" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvUndefineSpaceFailsGivenNullParameters" status="run" time="0" classname="NvTest" />
+    <testcase name="NvUndefineSpaceCanDeallocateSpace" status="run" time="0" classname="NvTest" />
+    <testcase name="NvUndefineSpaceCatchReDefinition" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvWriteFailsGivenNullParameters" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvWriteCanWrite" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvWriteFailsGivenOverflow" status="run" time="0" classname="NvTest" />
+    <testcase name="NvWriteFailsGivenInvalidLength" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvWriteFailsGivenIndexUndefined" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvReadFailsGivenNullParameters" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvReadCanRead" status="run" time="0" classname="NvTest" />
+    <testcase name="NvReadFailIfWriteWasNotCalled" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvReadFailsGivenOverflow" status="run" time="0.001" classname="NvTest" />
+    <testcase name="NvReadFailsGivenInvalidLength" status="run" time="0" classname="NvTest" />
+    <testcase name="NvReadFailsGivenIndexUndefined" status="run" time="0.001" classname="NvTest" />
+  </testsuite>
+</testsuites>
