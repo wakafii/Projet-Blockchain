@@ -1,0 +1,22 @@
+#! /usr/bin/env python
+import os
+import sys
+import subprocess
+
+curr_path = os.path.split(os.path.abspath(sys.argv[0]))[0]
+os.chdir(curr_path)
+env = os.environ
+env.update({'UNIT_TEST_DIR': '/home/moeroz/Esiee/E4/BlockChain/epid-sdk-master/_unit_tests/release_posix-x86_64/common_0.0.0/utest'})
+env['UNIT_TEST_DIR'] = curr_path
+cmd = r"../../../../_install/epid-sdk/test/common-utest --gtest_color=yes --gtest_print_time=1 --gtest_output=xml --gtest_filter=**"
+if len(sys.argv) > 1:
+    cmd = cmd+" "+' '.join(sys.argv[1:])
+else:
+    cmd = cmd
+print cmd
+proc = subprocess.Popen (cmd, env=env, shell=True)
+proc.wait()
+sys.stdout.flush()
+sys.stderr.flush()
+sys.exit(proc.returncode)
+

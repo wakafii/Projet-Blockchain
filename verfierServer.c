@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <netdb.h>
 
 int creaSocket(int Domaine, int Type, int Protocole, int Port)
 {
@@ -33,6 +34,56 @@ int creaSocket(int Domaine, int Type, int Protocole, int Port)
 		//exit(0); normalement exit mais ne sert a rien dans une fonction
 	}
 	return descSocket;
+}
+
+int clientBlockchain(int portSock, char* port, char* name, char* buffer)
+{
+		struct sockaddr_in addr_dest;
+		struct hostent *hp;
+		int res = 0;
+		int desc = creaSocket(AF_INET,SOCK_STREAM,0,portSock);
+
+		if(desc == -1)
+		{
+			perror("fail crea 1");
+			return 0;
+		}
+		hp = gethostbyname(name);	//pour recuperer l'@ip de la cible
+		if(hp == NULL)
+		{
+			perror("erreur1");
+			exit(0);
+		}
+		addr_dest.sin_family = AF_INET;
+		addr_dest.sin_port = htons(atoi(port));
+		memcpy(&addr_dest.sin_addr.s_addr, hp->h_addr,hp->h_length);
+		memset(addr_dest.sin_zero,0,8);
+
+		res = connect(desc, (struct sockaddr *)&addr_dest, sizeof(addr_dest));
+		if(res == -1)
+		{
+			perror("fail connect 1");
+			return 0;
+		}
+		res = write(desc,(void*)buffer,10000);	
+		if(res == -1)
+		{
+			perror("fail write 1");
+			return 1;
+		}
+		res = read(desc,buffer,10000);
+		if(res == -1)
+		{
+			perror("fail read 1");
+			return 1;
+		}
+		printf("%s\n",buffer);
+		close(desc);
+}
+
+int fctVerifier(const char* buffer)
+{
+	return rand()%10;
 }
 
 int main(int argc, char **argv)
@@ -84,7 +135,7 @@ int main(int argc, char **argv)
 			buffer_addr[compt] = buffer[compt];
 			compt++;
 		}
-		buffer_addr[compt] = '\0';
+		//buffer_addr[compt] = '\0';
 
 		compt2 = 0;
 		compt++;
@@ -101,11 +152,16 @@ int main(int argc, char **argv)
 		/**************************************************
 		**************** traitement message ***************
 		**************************************************/
-		nbAleat = rand()%100;
-		if(nbAleat <= 75)
+		nbAleat = fctVerifier(buffer_key);
+		if(nbAleat <= 8)
 		{
-			strcpy(buffer, "reussite\0");
+			strcpy(buffer, "ecriture ");
+			strcat(buffer, buffer_addr);
+			strcat(buffer," ");
+			strcat(buffer, buffer_key);
 			printf("%s\n",buffer);
+			clientBlockchain(htons(atoi(argv[1])+1), argv[2], argv[3], buffer);
+			strcpy(buffer, "reussite\0");
 		}
 		else
 		{
