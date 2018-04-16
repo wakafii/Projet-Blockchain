@@ -57,30 +57,14 @@ int main(int argc, char **argv)
 {
 	int res = 0;	
 	int port;
-	//int sock_service;
-	//int fin = 0;
-	//int nbAleat = 0;
-	//int compt = 0;
 	int i;
 	EpidMessage em;
 	int desc = 0;
 	char* args[3];
 	char msg_file[50];
-	/*strcpy(buffer, "GET /");
-	strcat(buffer, argv[3]);
-	strcat(buffer, " HTTP/1.1\n");
-	strcat(buffer, "Host: ");
-	strcat(buffer, argv[1]);
-	strcat(buffer,":");
-	strcat(buffer, argv[2]);
-	strcat(buffer,"\n\n");*/
 	struct sockaddr_in addr_dest;
 	struct hostent *hp;
-	char* buffer = (char*)calloc(10,sizeof(char));
-	char* buffer_key = (char*)calloc(10,sizeof(char));
-	int compt = 0;
-	int nbAleat = 0;
-	int pid = 0;
+	char ans[8];
 	
 	if(argc != 3)
 	{
@@ -99,7 +83,7 @@ int main(int argc, char **argv)
 
 
 	/*******************************************************
-	************ Provenance verifier ***********************
+	************ Communication with the Verifier ***********
 	*******************************************************/
 	
 	/**Message signature creation**/
@@ -161,155 +145,54 @@ int main(int argc, char **argv)
 		fprintf(stderr, "ERROR: Failed to send file %s (errno = %d)\n", FILENAME, errno);
 		exit(EXIT_FAILURE);
 	}
+	
+	//Read the Verifier's answer
+	if(read(desc,ans,8)<8)
+	{
+		fprintf(stderr, "ERROR: Failed to read the Verifier's answer (errno = %d)\n", errno);
+		exit(EXIT_FAILURE);
+	}
 
-		res = read(desc,buffer,10);
-
-		compt = 0;
-		while(buffer[compt] != '\0')
-		{
-			buffer_key[compt] = buffer[compt];
-			compt++;
-		}
-		buffer_key[compt] = '\0';
-
-		if(strcmp(buffer_key, "failure") == 0)
-		{
-			nbAleat = 1;
-		}
-		else if(strcmp(buffer_key, "success") == 0)
-		{
-			nbAleat = 50;
-		}
+	if(strcmp(ans, "failure") == 0)
+	{
+		printf("The signature is not valid.\n");
+		return EXIT_FAILURE;
+	}
+	else if(strcmp(ans, "success") == 0)
+	{
+		printf("The signature is valid.\n");
+	}
 	
 	/*****************************************************
-	************ Cloud Serveur ***************************
+	************ Communication with the Cloud ************
 	*****************************************************/
-
-	if(nbAleat == 50)
-	{
-		close(desc);
-		desc = creaSocket(AF_INET,SOCK_STREAM,0,0);
-		if(desc == -1)
-		{
-			exit(EXIT_FAILURE);
-		}
-
-		hp = gethostbyname(argv[3]);
-		if(hp == NULL)
-		{
-			perror("");
-			exit(EXIT_FAILURE);
-		}
-		addr_dest.sin_family = AF_INET;
-		addr_dest.sin_port = htons(atoi(argv[4]));
-		memcpy(&addr_dest.sin_addr.s_addr, hp->h_addr,hp->h_length);
-
-		res = connect(desc, (struct sockaddr *)&addr_dest, sizeof(addr_dest));
-		if(res == -1)
-		{
-			perror("Failed to connect to the Cloud");
-			exit(EXIT_FAILURE);
-		}
 	
-		//Send the EpidMessage
-		if(write(desc, em.id,sizeof(em.id))<0){
-				perror("Failed to write to cloud");
-				exit(EXIT_FAILURE);
-		}
-
-		res = read(desc,buffer,10);
-
-		compt = 0;
-		while(buffer[compt] != '\0')
-		{
-			buffer_key[compt] = buffer[compt];
-			compt++;
-		}
-		buffer_key[compt] = '\0';
-
-		if(strcmp(buffer_key, "failure") == 0)
-		{
-			nbAleat = 1;
-		}
-		else if(strcmp(buffer_key, "success") == 0)
-		{
-			nbAleat = 50;
-		}
-
-		if(nbAleat == 50)
-		{
-			pid = fork();
-			if(pid == 0)
-			{
-				system("scriptMember.sh");
-			}
-		}
-
-		/******************************************************/
-
-		/******************************************************
-		******************* Traitement message ****************
-		******************************************************/
-	/*
-		compt = 0;
-		while(buffer[compt] != '\0')
-		{
-			buffer_res[compt] = buffer[compt];
-			compt++;
-		}
-		buffer_res[compt] = '\0';
-
-		if(strcmp(buffer_res, "echec") == 0)
-		{
-			printf("KOKO\n");
-			nbAleat = 1;
-		}
-		else
-		{
-			nbAleat = 50;
-		}
-
-		/*****************************************************/
-	/*
-		if(nbAleat == 50)
-		{
-			close(desc);
-			desc = creaSocket(AF_INET,SOCK_STREAM,0,port);
-			if(desc == -1)
-			{
-				exit(EXIT_FAILURE);
-			}
-			hp = gethostbyname(argv[3]);
-			if(hp == NULL)
-			{
-				perror("");
-				exit(EXIT_FAILURE);
-			}
-			addr_dest.sin_family = AF_INET;
-			addr_dest.sin_port = htons(atoi(argv[4]));
-			memcpy(&addr_dest.sin_addr.s_addr, hp->h_addr,hp->h_length);
-
-			res = connect(desc, (struct sockaddr *)&addr_dest, sizeof(addr_dest));
-			if(res == -1)
-			{
-				perror("fail connect 2");
-				exit(EXIT_FAILURE);
-			}				
-			
-			strcpy(buffer, "f56fsf44fsfsf8ff1fds3fzgg");
-
-			if(write(desc, (void*)buffer,10000)<0){
-				perror("");
-				exit(EXIT_FAILURE);
-			}
-			if(read(desc, (void*)buffer,10000)<0){
-				perror("");
-				exit(EXIT_FAILURE);
-			}
-			printf("%s\n",buffer);
-		}
-		*/
+	//Send a connection request to the Cloud
+	if(send(desc, em.id, sizeof(em.id)) < (int)sizeof(em.id))
+	{
+		fprintf(stderr, "ERROR: Failed to send the connection request to the Cloud (errno = %d)\n", errno);
+		exit(EXIT_FAILURE);
 	}
+	
+	//Receive the Cloud's answer
+	bzero(ans, 8)
+	if(read(desc, ans, 8)<8)
+	{
+		fprintf(stderr, "ERROR: Failed to read the Cloud's answer (errno = %d)\n", errno);
+		exit(EXIT_FAILURE);
+	}
+
+	if(strcmp(ans, "failure") == 0)
+	{
+		printf("The Cloud refused the connection.\n");
+		return EXIT_FAILURE;
+	}
+	else if(strcmp(ans, "success") == 0)
+	{
+		printf("The Cloud is waiting for a VPN connection.\n");
+		
+	}
+	
 
 	close(desc);
 	return EXIT_SUCCESS;

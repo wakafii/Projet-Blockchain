@@ -1,6 +1,7 @@
 #include <netinet/in.h> //pour AF_INET
 #include <sys/types.h>	//pour les types de socket
 #include <sys/socket.h>	//pour toutes les fct des socket
+#include <sys/wait.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,8 @@
 #include "util/EpidMessage.h"
 #include "util/fileio.h"
 #include "verifyprocess.h"
+
+#define FN_SIZE 5
 
 int creaSocket(int Domaine, int Type, int Protocole, int Port)
 {
@@ -39,10 +42,10 @@ int creaSocket(int Domaine, int Type, int Protocole, int Port)
 
 int main(int argc, char **argv)
 {
-	int res = 0, i;	
+	int res, i;	
 	int port;
 	int sock_service, desc;
-	int fin = 0;
+	int fin;
 	socklen_t size;
 	struct sockaddr_in addr_env;
 	
@@ -51,6 +54,7 @@ int main(int argc, char **argv)
 		printf("How to use: ./verifier port_number ");
 		exit(EXIT_FAILURE);
 	}
+	res = fin = 0;
 	
 	size = sizeof(struct sockaddr_in);
 	
@@ -102,7 +106,7 @@ int main(int argc, char **argv)
 	  printf("hash received: %s\n", em.id);
 		
 		//Receive the Signature
-		strcpy(fn_sig, em.id);
+		strncpy(fn_sig, em.id, FN_SIZE);
 		strcat(fn_sig, ".dat");
 		if(receivefile(sock_service, fn_sig, em.sig_size))
 		{
@@ -112,7 +116,7 @@ int main(int argc, char **argv)
 		printf("SUCCESS: Signature received. \n");
 		
 		//Receive the member's Public Key
-		strcpy(fn_key, em.id);
+		strncpy(fn_key, em.id, FN_SIZE);
 		strcat(fn_key, ".txt");
 		if(receivefile(sock_service, fn_key, em.msg_size))
 		{
@@ -133,8 +137,6 @@ int main(int argc, char **argv)
 		{
      	args[i] = (char *)calloc(100, sizeof(char));
 		}
-		
-		printf("allocation args\n");
 					
 		//args setup
 		strcpy(sig_file, "--sig=");
@@ -145,27 +147,46 @@ int main(int argc, char **argv)
 		strcpy(args[0], "./verifysig");
 		strcpy(args[1], sig_file);
 		strcpy(args[2], msg_file);
-		
-		printf("setup args\n");
+	
 		
 		if(verifyprocess(3, args) == EXIT_FAILURE)
 		{
-			//printf("Failed to verify the Signature\n");
       strcpy(answer, "failure");
 		}
 		else
 		{
+			char fn_hex[70];
+			char *hex_string;
+			size_t size_hex;
 			strcpy(answer, "success");
-			//write in blockchain
+			
+			//Convert the Public Key into a hex string
+			strncpy(fn_hex, em.id, FN_SIZE);
+			strcat(fn_hex, ".hex");
 			pid = fork();
 			if(pid == 0)
 			{
-				execlp("multichain-cli", "multichain-cli", "chain2", "publish", "stream1", em.id, em.md5cs);		
+				if(execlp("python2", "python2", "b2h.py", fn_key, fn_hex, NULL) == -1)
+				{
+					fprintf(stderr, "ERROR: Failed run the b2h python script.(errno = %d)\n", errno);
+       		exit(EXIT_FAILURE);
+				}
 			}
+			//wait for the child to finish
+			wait(NULL);
+			//Get the hex string from the file
+			hex_string = (char*) NewBufferFromFile(fn_hex, &size_hex);
+			printf("Hex string:\n%s\n", hex_string);
+			//Launch a shell command to write the file in the Client Blockchain
+			pid = fork();
+			if(pid == 0)
+			{
+				execlp("multichain-cli", "multichain-cli", "chain1", "publish", "stream1", em.id, hex_string, NULL);
+			}
+			
 		}		
-		
 		//Send the answer
-		if(read(sock_service, (char*)answer, sizeof(answer)) < (int)sizeof(answer)))
+		if(send(sock_service, (char*)answer, sizeof(answer)) < (int)sizeof(answer))
 		{
 			 fprintf(stderr, "ERROR: Failed to send Answer.(errno = %d)\n", errno);
        exit(EXIT_FAILURE);
@@ -175,6 +196,7 @@ int main(int argc, char **argv)
 
 		//printf("%s\n",buffer);
 		close(sock_service);
+		
 	}
 	//if(buffer) free(buffer);
 	close(desc);

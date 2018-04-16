@@ -2,8 +2,8 @@
 
 #define variables
 IPP_API_INCLUDE_DIR = ../ext/ipp/include
-EXAMPLE_INSTALL_DIR = _install/example
-COMPRESSED_DEFAULT_FILES_INSTALL_DIR = _install/compressed_example
+EXAMPLE_INSTALL_DIR = $(epidinstalldir)/example
+COMPRESSED_DEFAULT_FILES_INSTALL_DIR = $(epidinstalldir)/compressed_example
 
 SIGNMSG_INCLUDE_DIR = ./member
 SIGNMSG_SRC = $(wildcard ./member/src/*.c)
@@ -14,6 +14,11 @@ VERIFYSIG_INCLUDE_DIR = ./verifier
 VERIFYSIG_SRC = $(wildcard ./verifier/src/*.c)
 VERIFYSIG_OBJ = $(VERIFYSIG_SRC:.c=.o)
 VERIFYSIG_EXE = ./verifier/src/verifier$(EXE_EXTENSION)
+
+CLOUD_INCLUDE_DIR = ./cloud
+CLOUD_SRC = $(wildcard ./cloud/src/*.c)
+CLOUD_OBJ = $(CLOUD_SRC:.c=.o)
+CLOUD_EXE = ./cloud/src/cloud$(EXE_EXTENSION)
 
 
 LIB_UTIL_DIR = ./util/src
@@ -59,11 +64,26 @@ $(SIGNMSG_OBJ): %.o: %.c
 			-I$(LIB_MEMBER_DIR)/../.. \
 			-I$(SIGNMSG_INCLUDE_DIR) \
 			-I$(IPP_API_INCLUDE_DIR) -c $^
+			
+			
+$(CLOUD_EXE): $(CLOUD_OBJ)
+	$(CC) -o $@ $^ -L$(LIB_CLOUD_DIR) -lverifier $(LDFLAGS)
+
+$(CLOUD_OBJ): %.o: %.c
+	$(CC) -o $@ $(CFLAGS) -I$(LIB_UTIL_DIR)/../.. \
+			-I$(LIB_ARGTABLE_DIR) \
+			-I$(LIB_CLOUD_DIR)/../.. \
+			-I$(CLOUD_INCLUDE_DIR) \
+			-I$(IPP_API_INCLUDE_DIR) -c $^
+
 
 #target part
 build: all install
 
-all: $(VERIFYSIG_EXE) $(SIGNMSG_EXE)
+all: $(VERIFYSIG_EXE) $(SIGNMSG_EXE) $(CLOUD_EXE) move
+
+move:
+	cp $(VERIFYSIG_EXE) $(SIGNMSG_EXE) $(CLOUD_EXE) '$(EXAMPLE_INSTALL_DIR)'
 
 install:
 	mkdir -p '$(EXAMPLE_INSTALL_DIR)/data'

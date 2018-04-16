@@ -6,10 +6,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include "util/buffutil.h"
 
-int createfile(char* command, char* filename)
+int create_query_file(char* command, char* filename)
 {
-	FILE* w;
+	FILE* w, *fp;
+	int status, c;
 	fp = popen(command, "r");
 		if (fp == NULL)
 		{
@@ -58,7 +60,7 @@ int creaSocket(int Domaine, int Type, int Protocole, int Port)
 
 int main(int argc, char **argv)
 {
-	int res = 0, i;	
+	int res = 0;	
 	int port;
 	int sock_service, desc;
 	int fin = 0;
@@ -96,77 +98,64 @@ int main(int argc, char **argv)
 	while(!fin)
 	{
 		//char **args;
-		char id;
-		int fd;
+		char *id;
 		FILE *fp;
-		int status;
 		int c, i;
 		char command[150];
-		char* bc_checksum;
-		char* member_checksum;
-		size_t md5cs_size;
 		char answer[8];
+		char *query;
 		
 		sock_service = accept(desc, (struct sockaddr *)&addr_env, &size);
 		if(sock_service == -1)
 		{
-			perror("error accept");
+			perror("Accept: ");
 			exit(EXIT_FAILURE);
 		}
 		
 		//Receive the ID
-		if(read(sock_service, (char*)&id, 65) < 65)
+		if(read(sock_service, (char*)id, 65) < 65)
 		{
 			 fprintf(stderr, "ERROR: Failed to read ID. (errno = %d)\n", errno);
        exit(EXIT_FAILURE);
 		}
 		printf("SUCCESS: ID received. \n");
 	  printf("ID received: %s\n", id);
-		
-		//receive the length of the checksum
-		if(read(sock_service, (int*)&md5cs_size, sizeof(int)) < (int)sizeof(int))
-		{
-			 fprintf(stderr, "ERROR: Failed to read the md5 checksum size. (errno = %d)\n", errno);
-       exit(EXIT_FAILURE);
-		}
-		printf("SUCCESS: md5 size received. \n");
-	  printf("md5 size: %d\n", md5cs_size);
-		
-		//receive the md5 checksum
-		member_checksum = (char*) malloc(md5cs_size * sizeof(char));
-		if(read(sock_service, (char*)member_checksum, md5cs_size) < md5cs_size)
-		{
-			 fprintf(stderr, "ERROR: Failed to read the md5 checksum. (errno = %d)\n", errno);
-       exit(EXIT_FAILURE);
-		}		
-	  printf("SUCCESS: md5 received. \n");
-	  printf("md5: %s\n", member_checksum);
 	  
 	  //Query the blockchain and put the result in a file
-		strcpy(command, "multichain-cli chain2 liststreamkeys stream1 ");
+		strcpy(command, "multichain-cli chain1 liststreamkeys stream1 ");
 		strcat(command, id);
-		createfile(command, "query.txt");
+		create_query_file(command, "query.txt");
 		
-		//Parse the query
-
+		//Parse the query and put it in a stream
 		fp = popen("./jq-linux64 -R query.txt", "r");
 		if (fp == NULL)
 		{
 			printf("popen() failed\n");
 			exit(EXIT_FAILURE);
-		}	
-		bc_checksum =(char*) malloc(md5cs_size * sizeof(char));
+		}
+		//Get the result from the stream
+		fseek(fp, 0, SEEK_END);
+    query = (char*) malloc(ftell(fp) * sizeof(char));
+    fseek(fp, 0, SEEK_SET);
 		i=0;
 		while ((c = fgetc(fp)) != EOF)
-				bc_checksum[i++] = c;
+				query[i++] = c;
 				
-		//Compare the two checksums
-		if(strcmp(bc_checksum, member_checksum) == 0)
+		//Check if the query has given something
+		if(strcmp(query, "") == 0)
 		{
-			strcpy(answer, "success");
+			strcpy(answer, "failure");
 		}
 		else
-			strcpy(answer, "failure");
+		{
+			strcpy(answer, "success");
+			/*WriteLoud(HEX)
+			if(execlp("python2", "python2", "h2b.py", fn_key, fn_hex, NULL) == -1)
+			{
+				fprintf(stderr, "ERROR: Failed run the b2h python script.(errno = %d)\n", errno);
+     		exit(EXIT_FAILURE);
+			}*/
+		}
 		
 		if(write(sock_service, (char*)answer, sizeof(answer)) < (int)sizeof(answer))
 		{
