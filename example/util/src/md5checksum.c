@@ -26,17 +26,18 @@ unsigned long get_size_by_fd(int fd) {
     return statbuf.st_size;
 }
 
-char* md5checksum(char* filename) {
+unsigned char* md5checksum(char* filename) {
     int file_descript;
     unsigned long file_size;
     char* file_buffer;
     unsigned char* hex_buf;
-    
+     
     hex_buf = (unsigned char*) malloc(MD5_DIGEST_LENGTH * sizeof(unsigned char));
     printf("using file:\t%s\n", filename);
 
     file_descript = open(filename, O_RDONLY);
-    if(file_descript < 0) return -1;
+    if(file_descript < 0) 
+   		printf("open %s failed\n", filename);
 
     file_size = get_size_by_fd(file_descript);
     printf("file size:\t%lu\n", file_size);

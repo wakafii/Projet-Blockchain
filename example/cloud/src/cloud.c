@@ -6,7 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include "util/md5pair.h"
 
 int createfile(char* command, char* filename)
 {
@@ -87,7 +86,7 @@ int main(int argc, char **argv)
 	res = listen(desc, 1);
 	if(res == -1)
 	{
-		perror("error ecoute");
+		perror("Listen: ");
 		exit(EXIT_FAILURE);
 	}
 
@@ -149,7 +148,7 @@ int main(int argc, char **argv)
 		createfile(command, "query.txt");
 		
 		//Parse the query
-		i=0;
+
 		fp = popen("./jq-linux64 -R query.txt", "r");
 		if (fp == NULL)
 		{
@@ -157,6 +156,7 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}	
 		bc_checksum =(char*) malloc(md5cs_size * sizeof(char));
+		i=0;
 		while ((c = fgetc(fp)) != EOF)
 				bc_checksum[i++] = c;
 				
@@ -174,10 +174,11 @@ int main(int argc, char **argv)
        exit(EXIT_FAILURE);
 		}				
 		
+		/** NOTIFY CLIENT **/
 	  
 	  /** START OPENVPN **/
 	  
-	  /** NOTIFY CLIENT **/
+
 		
 
 		/**************************************************
