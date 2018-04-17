@@ -128,8 +128,8 @@ int main(int argc, char **argv)
 	//Send the EpidMessage
 	if(send(desc, &em, sizeof(EpidMessage), 0) < 0)
   {
-      fprintf(stderr, "ERROR: Failed to send EpidMessage. (errno = %d)\n", errno);
-      exit(EXIT_FAILURE);
+	  fprintf(stderr, "ERROR: Failed to send EpidMessage. (errno = %d)\n", errno);
+	  exit(EXIT_FAILURE);
   }
 	
 	//Send the Signature
@@ -168,14 +168,14 @@ int main(int argc, char **argv)
 	*****************************************************/
 	
 	//Send a connection request to the Cloud
-	if(send(desc, em.id, sizeof(em.id)) < (int)sizeof(em.id))
+	if(write(desc, em.id, sizeof(em.id)) < (int)sizeof(em.id))
 	{
 		fprintf(stderr, "ERROR: Failed to send the connection request to the Cloud (errno = %d)\n", errno);
 		exit(EXIT_FAILURE);
 	}
 	
 	//Receive the Cloud's answer
-	bzero(ans, 8)
+	bzero(ans, 8);
 	if(read(desc, ans, 8)<8)
 	{
 		fprintf(stderr, "ERROR: Failed to read the Cloud's answer (errno = %d)\n", errno);

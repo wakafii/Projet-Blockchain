@@ -11,7 +11,7 @@
 #include "util/fileio.h"
 #include "verifyprocess.h"
 
-#define FN_SIZE 5
+#define FN_SIZE 4
 
 int creaSocket(int Domaine, int Type, int Protocole, int Port)
 {
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 			
 		}		
 		//Send the answer
-		if(send(sock_service, (char*)answer, sizeof(answer)) < (int)sizeof(answer))
+		if(write(sock_service, (char*)answer, sizeof(answer)) < (int)sizeof(answer))
 		{
 			 fprintf(stderr, "ERROR: Failed to send Answer.(errno = %d)\n", errno);
        exit(EXIT_FAILURE);
