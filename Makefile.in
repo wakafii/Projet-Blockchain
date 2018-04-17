@@ -1,16 +1,16 @@
 #!/usr/bin/make -f
 
 #variables are set by configure
-prefix = /home/moeroz/Esiee/E4/BlockChain/project-root/_install
+prefix = @prefix@
 installdir = $(prefix)/
 epidinstalldir = $(installdir)/epid-sdk
-CC = gcc
-CXX = g++
-CFLAGS = 
-LDFLAGS = 
-RANLIB = ranlib
-TSS_PATH = 
-TINY = 
+CC = @CC@
+CXX = @CXX@
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
+RANLIB = @RANLIB@
+TSS_PATH = @TSS_PATH@
+TINY = @TINY@
 
 #set performance affecting flags
 SIZE_CFLAGS := -O2
