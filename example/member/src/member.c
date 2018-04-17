@@ -1,6 +1,6 @@
-#include <netinet/in.h> //pour AF_INET
-#include <sys/types.h>	//pour les types de socket
-#include <sys/socket.h>	//pour toutes les fct des socket
+#include <netinet/in.h>
+#include <sys/types.h>	
+#include <sys/socket.h>	
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,7 +14,7 @@
 #include "signprocess.h"
 #include "util/buffutil.h"
 
-#define FILENAME "Hello.txt"
+#define FILENAME "sig.dat"
 
 void delay(unsigned int milliseconds)
 {
@@ -34,7 +34,6 @@ int creaSocket(int Domaine, int Type, int Protocole, int Port)
 		printf("echec creation, ligne %d\n", __LINE__);
 		perror("");
 		return -1;
-		//exit(EXIT_FAILURE); normalement exit mais ne sert a rien dans une fonction
 	}
 
 	ad1.sin_family = Domaine;
@@ -106,11 +105,10 @@ int main(int argc, char **argv)
 	em.sig_size = GetFileSize("sig.dat");
 	em.msg_size = GetFileSize(FILENAME);
 	/**Connection to the Provenance Verifier**/
-	//printf("dedans\n");
-	hp = gethostbyname(argv[1]);	//pour recuperer l'@ip de la cible
+	hp = gethostbyname(argv[1]);	
 	if(hp == NULL)
 	{
-		perror("erreur1");
+		perror("Connect Verifier: ");
 		exit(EXIT_FAILURE);
 	}
 	addr_dest.sin_family = AF_INET;
@@ -166,8 +164,25 @@ int main(int argc, char **argv)
 	/*****************************************************
 	************ Communication with the Cloud ************
 	*****************************************************/
-	
-	//Send a connection request to the Cloud
+	//Connect to the Cloud
+	hp = gethostbyname(argv[3]);
+	if(hp == NULL)
+	{
+		perror("Connect Cloud: ");
+		exit(EXIT_FAILURE);
+	}
+	addr_dest.sin_family = AF_INET;
+	addr_dest.sin_port = htons(atoi(argv[4]));
+	memcpy(&addr_dest.sin_addr.s_addr, hp->h_addr, hp->h_length);
+	memset(addr_dest.sin_zero,0,8);
+
+	res = connect(desc, (struct sockaddr *)&addr_dest, sizeof(addr_dest));
+	if(res == -1)
+	{
+		perror("Failed to connect to the Provenance Verifier");
+		exit(EXIT_FAILURE);
+	}
+	//Send a VPN connection request to the Cloud
 	if(write(desc, em.id, sizeof(em.id)) < (int)sizeof(em.id))
 	{
 		fprintf(stderr, "ERROR: Failed to send the connection request to the Cloud (errno = %d)\n", errno);

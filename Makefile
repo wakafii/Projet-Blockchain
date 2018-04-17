@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 #variables are set by configure
-prefix = /home/moeroz/Esiee/E4/BlockChain/project-root/_install
+prefix = /home/blockchain/Documents/Projet-Blockchain/_install
 installdir = $(prefix)/
 epidinstalldir = $(installdir)/epid-sdk
 CC = gcc
