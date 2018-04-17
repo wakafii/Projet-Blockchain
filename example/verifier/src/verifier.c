@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 			pid = fork();
 			if(pid == 0)
 			{
-				if(execlp("python2", "python2", "b2h.py", fn_key, fn_hex, NULL) == -1)
+				if(execlp("python", "python2", "encode.py", fn_key, fn_hex, NULL) == -1)
 				{
 					fprintf(stderr, "ERROR: Failed run the b2h python script.(errno = %d)\n", errno);
        		exit(EXIT_FAILURE);
