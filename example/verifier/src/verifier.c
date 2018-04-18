@@ -11,7 +11,8 @@
 #include "util/fileio.h"
 #include "verifyprocess.h"
 
-#define FN_SIZE 4
+#define FN_SIG "verifsig.dat"
+#define FN_KEY "verifkey.txt"
 
 int creaSocket(int Domaine, int Type, int Protocole, int Port)
 {
@@ -79,8 +80,8 @@ int main(int argc, char **argv)
 
 	while(!fin)
 	{
-		char fn_key[70];
-		char fn_sig[70];
+		//char fn_key[70];
+		//char fn_sig[70];
 		char msg_file[85];
 		char sig_file[85];
 		char **args;
@@ -97,28 +98,31 @@ int main(int argc, char **argv)
 		}
 		
 		//Receive the EpidMessage
-		if(read(sock_service, (EpidMessage*)&em, sizeof(em)) < (int)sizeof(em))
+		if((size_t)read(sock_service, (EpidMessage*)&em, sizeof(em)) < sizeof(em))
 		{
 			 fprintf(stderr, "ERROR: Failed to read EpidMessage. bytes read: %d/%lu.(errno = %d)\n", res, sizeof(EpidMessage), errno);
        exit(EXIT_FAILURE);
 		}
 		printf("SUCCESS: EpidMessage received. \n");
-	  printf("hash received: %s\n", em.id);
+	  	printf("hash received: %s\n", em.id);
+	  	printf("message size: %lu\n", em.msg_size);
+	  	printf("sig size: %lu\n", em.sig_size);
+
 		
 		//Receive the Signature
-		strncpy(fn_sig, em.id, FN_SIZE);
-		strcat(fn_sig, ".dat");
-		if(receivefile(sock_service, fn_sig, em.sig_size))
+		//strncpy(fn_sig, em.id, FN_SIZE);
+		//strcat(fn_sig, ".dat");
+		if(receivefile(sock_service, FN_SIG, em.sig_size))
 		{
 			 fprintf(stderr, "ERROR: Failed to receive the Signature.(errno = %d)\n", errno);
-       exit(EXIT_FAILURE);
+       		exit(EXIT_FAILURE);
 		}
 		printf("SUCCESS: Signature received. \n");
 		
 		//Receive the member's Public Key
-		strncpy(fn_key, em.id, FN_SIZE);
-		strcat(fn_key, ".txt");
-		if(receivefile(sock_service, fn_key, em.msg_size))
+		//strncpy(fn_key, em.id, FN_SIZE);
+		//strcat(fn_key, ".txt");
+		if(receivefile(sock_service, FN_KEY, em.msg_size))
 		{
 			 fprintf(stderr, "ERROR: Failed to receive the Public Key.(errno = %d)\n", errno);
        exit(EXIT_FAILURE);
@@ -140,9 +144,9 @@ int main(int argc, char **argv)
 					
 		//args setup
 		strcpy(sig_file, "--sig=");
-		strcat(sig_file, fn_sig);
+		strcat(sig_file, FN_SIG);
 		strcpy(msg_file, "--msgfile=");
-		strcat(msg_file, fn_key);
+		strcat(msg_file, FN_KEY);
 		
 		strcpy(args[0], "./verifysig");
 		strcpy(args[1], sig_file);
@@ -155,41 +159,42 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			char fn_hex[70];
-			char *hex_string;
-			size_t size_hex;
+			//char fn_hex[70];
+			//char *hex_string;
+			//size_t size_hex;
 			strcpy(answer, "success");
 			
 			//Convert the Public Key into a hex string
-			strncpy(fn_hex, em.id, FN_SIZE);
-			strcat(fn_hex, ".hex");
+			//strncpy(fn_hex, em.id, FN_SIZE);
+			//strcat(fn_hex, ".hex");
 			pid = fork();
 			if(pid == 0)
 			{
-				if(execlp("python", "python2", "encode.py", fn_key, fn_hex, NULL) == -1)
+				if(execlp("./verif_script", "./verif_script", em.id, FN_KEY, NULL) == -1)
 				{
-					fprintf(stderr, "ERROR: Failed run the b2h python script.(errno = %d)\n", errno);
-       		exit(EXIT_FAILURE);
+					fprintf(stderr, "ERROR: Failed run the verif script.(errno = %d)\n", errno);
+       					exit(EXIT_FAILURE);
 				}
 			}
-			//wait for the child to finish
+			//wait for the child process to finish
 			wait(NULL);
-			//Get the hex string from the file
-			hex_string = (char*) NewBufferFromFile(fn_hex, &size_hex);
+			
+			/*//Get the hex string from the file
+			hex_string = (char*) NewBufferFromFile(FN_HEX, &size_hex);
 			printf("Hex string:\n%s\n", hex_string);
 			//Launch a shell command to write the file in the Client Blockchain
 			pid = fork();
 			if(pid == 0)
 			{
 				execlp("multichain-cli", "multichain-cli", "chain1", "publish", "stream1", em.id, hex_string, NULL);
-			}
+			}*/
 			
 		}		
 		//Send the answer
-		if(write(sock_service, (char*)answer, sizeof(answer)) < (int)sizeof(answer))
+		if((size_t)write(sock_service, (char*)answer, sizeof(answer)) < sizeof(answer))
 		{
-			 fprintf(stderr, "ERROR: Failed to send Answer.(errno = %d)\n", errno);
-       exit(EXIT_FAILURE);
+			fprintf(stderr, "ERROR: Failed to send Answer.(errno = %d)\n", errno);
+   			exit(EXIT_FAILURE);
 		}
 		printf("SUCCESS: Answer sent \n");		
 		

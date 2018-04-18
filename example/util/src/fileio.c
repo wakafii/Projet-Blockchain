@@ -83,7 +83,7 @@ int receivefile(int sockfd, char* id, size_t size)
 
 	/*Receive File from Client */
 	//char* fr_name = "hello.txt";
-	FILE *fr = fopen(id, "a");
+	FILE *fr = fopen(id, "ab+");
 	if(fr == NULL)
 		printf("File %s Cannot be opened file on server.\n", id);
 	else

@@ -1,0 +1,4 @@
+#!/bin/bash
+query=$(multichain-cli chain1 liststreamitems stream1 | ./jq -r '(.[] | select(.key == "'$1'")?) | .data')
+bin=$(echo $query | xxd -r -p)
+echo $bin

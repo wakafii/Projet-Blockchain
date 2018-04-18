@@ -31,7 +31,6 @@
 #include "util/buffutil.h"
 #include "util/convutil.h"
 #include "util/envutil.h"
-#include "verifyprocess.h"
 
 // Defaults
 #define PROGRAM_NAME "verifysig"

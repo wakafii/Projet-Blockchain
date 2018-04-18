@@ -1,10 +1,5 @@
 #ifndef EPID_MESSAGE_H
 #define EPID_MESSAGE_H
-
-#include "util/buffutil.h"
-#include "util/convutil.h"
-#include "util/envutil.h"
-
 #include <sys/types.h>
 
 

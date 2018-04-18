@@ -14,7 +14,8 @@
 #include "signprocess.h"
 #include "util/buffutil.h"
 
-#define FILENAME "sig.dat"
+#define FN_SIG "sig.dat"
+#define FN_MSG "Hello.txt"
 
 void delay(unsigned int milliseconds)
 {
@@ -65,9 +66,9 @@ int main(int argc, char **argv)
 	struct hostent *hp;
 	char ans[8];
 	
-	if(argc != 3)
+	if(argc < 5)
 	{
-		printf("How to use: ./member hostname port\n");
+		printf("How to use: ./member verif_hostname verif_port cloud_hostname cloud_port\n");
 		exit(EXIT_FAILURE);
 	}
 	
@@ -86,24 +87,26 @@ int main(int argc, char **argv)
 	*******************************************************/
 	
 	/**Message signature creation**/
-	for(i=0; i<3; i++)
+	for(i=0; i<2; i++)
 	{
 		args[i] = (char*) malloc(sizeof(char)*65);
 	}
 	strcpy(msg_file, "--msgfile=");
-	strcat(msg_file, FILENAME);
+	strcat(msg_file, FN_MSG);
 	strcpy(args[0], "./signmsg");
 	strcpy(args[1], msg_file);
-	strcpy(args[2], "--verbose");
+	//strcpy(args[2], "--verbose");
 	
 	signprocess(2, args, &em);
 	
 	/**EpidMessage struct fill**/
-	calc_sha256(FILENAME, em.id);
-	//printf("%s's hash: %s\n", FILENAME, em.id);
+	calc_sha256(FN_MSG, em.id);
+	//printf("%s's hash: %s\n", FN_MSG, em.id);
 	em.code = 0;
-	em.sig_size = GetFileSize("sig.dat");
-	em.msg_size = GetFileSize(FILENAME);
+	em.sig_size = GetFileSize(FN_SIG);
+	printf("sig size: %lu\n", em.sig_size);
+	em.msg_size = GetFileSize(FN_MSG);
+	printf("msg size: %lu\n", em.msg_size);
 	/**Connection to the Provenance Verifier**/
 	hp = gethostbyname(argv[1]);	
 	if(hp == NULL)
@@ -131,16 +134,16 @@ int main(int argc, char **argv)
   }
 	
 	//Send the Signature
-	if(sendfile(desc, "sig.dat"))
+	if(sendfile(desc, FN_SIG))
 	{
 		fprintf(stderr, "ERROR: Failed to send file sig.dat (errno = %d)\n", errno);
 		exit(EXIT_FAILURE);
 	}
 	
 	//Send the Public Key
-	if(sendfile(desc, FILENAME))
+	if(sendfile(desc, FN_MSG))
 	{
-		fprintf(stderr, "ERROR: Failed to send file %s (errno = %d)\n", FILENAME, errno);
+		fprintf(stderr, "ERROR: Failed to send file %s (errno = %d)\n", FN_MSG, errno);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -160,11 +163,15 @@ int main(int argc, char **argv)
 	{
 		printf("The signature is valid.\n");
 	}
+
+	close(desc);
 	
 	/*****************************************************
 	************ Communication with the Cloud ************
 	*****************************************************/
 	//Connect to the Cloud
+	
+	desc = creaSocket(AF_INET,SOCK_STREAM,0,0);
 	hp = gethostbyname(argv[3]);
 	if(hp == NULL)
 	{
@@ -179,11 +186,11 @@ int main(int argc, char **argv)
 	res = connect(desc, (struct sockaddr *)&addr_dest, sizeof(addr_dest));
 	if(res == -1)
 	{
-		perror("Failed to connect to the Provenance Verifier");
+		perror("Failed to connect to the Cloud");
 		exit(EXIT_FAILURE);
 	}
 	//Send a VPN connection request to the Cloud
-	if(write(desc, em.id, sizeof(em.id)) < (int)sizeof(em.id))
+	if((size_t)write(desc, &em, sizeof(em)) < sizeof(em.id))
 	{
 		fprintf(stderr, "ERROR: Failed to send the connection request to the Cloud (errno = %d)\n", errno);
 		exit(EXIT_FAILURE);

@@ -7,29 +7,9 @@
 #include <unistd.h>
 #include <errno.h>
 #include "util/buffutil.h"
+#include "util/EpidMessage.h"
 
-int write_query_file(char* command, const char* filename)
-{
-	FILE* w, *fp;
-	int status, c;
-	fp = popen(command, "r");
-	if (fp == NULL)
-	{
-		printf("popen() write query failed\n");
-		return -1;
-	}	
-	w = fopen(filename, "rb+");
-
-	while ((c = fgetc(fp)) != EOF)
-			fputc(c, w);
-
-	status = pclose(fp);
-	if (status == -1) {
-		printf("command failed\n");
-		return -1;
-	}
-	return 0;
-}
+//#define FN_QUERY "cloudquery.txt"
 
 int creaSocket(int Domaine, int Type, int Protocole, int Port)
 {
@@ -40,7 +20,7 @@ int creaSocket(int Domaine, int Type, int Protocole, int Port)
 	descSocket = socket(Domaine, Type, Protocole);
 	if(descSocket == -1)
 	{
-		printf("echec creation, ligne %d", __LINE__);
+		printf("echec creation, ligne %d\n", __LINE__);
 		return -1;
 	}
 
@@ -66,9 +46,10 @@ int main(int argc, char **argv)
 	int fin = 0;
 	socklen_t size;
 	struct sockaddr_in addr_env;
+	EpidMessage em;
 
 	
-	if(argc != 2)
+	if(argc < 2)
 	{
 		printf("How to use: ./member port_number ");
 		exit(EXIT_FAILURE);
@@ -85,7 +66,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	res = listen(desc, 1);
+	res = listen(desc, 5);
 	if(res == -1)
 	{
 		perror("Listen: ");
@@ -98,15 +79,11 @@ int main(int argc, char **argv)
 	while(!fin)
 	{
 		//char **args;
-		char *id;
-		FILE *fp, *wf;
+		FILE *fp;
 		int c, i;
 		char command[300];
 		char answer[8];
 		char *queried_data;
-		char fn_query[13];
-		char fn_hex[12];
-		char fn_key[12];
 		
 		sock_service = accept(desc, (struct sockaddr *)&addr_env, &size);
 		if(sock_service == -1)
@@ -115,53 +92,39 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 		
-		//Receive the ID
-		if(read(sock_service, (char*)id, 65) < 65)
+		//Receive the EpidMessage
+		if((size_t)read(sock_service, (EpidMessage*)&em, sizeof(em)) < sizeof(em))
 		{
-			fprintf(stderr, "ERROR: Failed to read ID. (errno = %d)\n", errno);
+			fprintf(stderr, "ERROR: Failed to read EpidMessage. (errno = %d)\n", errno);
 			exit(EXIT_FAILURE);
 		}
-		printf("SUCCESS: ID received. \n");
-	  	printf("ID received: %s\n", id);
-	  
-	  	//Query the blockchain and put the result in a file
-	  	strcpy(fn_query, "query");
-	  	strcat(fn_query, id);
-	  	strcat(fn_query, ".txt");
-		write_query_file("multichain-cli chain1 liststreamitems stream1", fn_query);		
+		printf("SUCCESS: EpidMessage received. \n");
 		
-		//Parse the query and put it in a stream
-		strcpy(command, "cat ");
-		strcat(command, fn_query);
-		strcat(command, " | ./jq --raw-output '(.[] | select(.key == \"");
-		strcat(command, id);
-		strcat(command,"\")?) | .data'");
+		//Parse the query, convert its content, and put it in a stream
+    	queried_data = (char*) malloc(sizeof(char) * 1000);
+		strcpy(command, "./cloud_script ");
+		strcat(command, em.id);
 		fp = popen(command, "r");
 		if (fp == NULL)
 		{
-			printf("popen() jq failed\n");
+			printf("popen() cloud_script failed\n");
 			exit(EXIT_FAILURE);
 		}
-		//Process the result
-		strcpy(fn_hex, "hex");
-	  	strcat(fn_hex, id);
-	  	strcat(fn_hex, ".txt");
-		wf = fopen(fn_hex, "rb+");
-		fseek(fp, 0, SEEK_END);
-		size = ftell(fp);
-	    queried_data = (char*) calloc(sizeof(char), size);
-	    fseek(fp, 0, SEEK_SET);
 		i=0;
 		while ((c = fgetc(fp)) != EOF)
 		{
 			if(c == '\n')
 				break;
-			fputc(c, wf);
 			queried_data[i++] = c;
 		}
 		
-		fclose(wf);
-		fclose(fp);
+		if(pclose(fp) == -1)
+		{
+			printf("pclose caught an error \n");
+			exit(EXIT_FAILURE);
+		}
+		
+		printf("Queried data: %s\n", queried_data);
 				
 		//Check if the query has given something
 		if(strcmp(queried_data, "") == 0)
@@ -170,19 +133,11 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			strcpy(answer, "success");
-			strcpy(fn_hex, "key");
-		  	strcat(fn_hex, id);
-		  	strcat(fn_hex, ".txt");
-			if(execlp("python", "python", "decode.py", fn_hex, fn_key, NULL) == -1)
-			{
-				fprintf(stderr, "ERROR: Failed to run the decode python script.(errno = %d)\n", errno);
-     			exit(EXIT_FAILURE);
-			}
+			strcpy(answer, "success");			
 		}
 		
 		//Notify the Client
-		if(write(sock_service, (char*)answer, sizeof(answer)) < (int)sizeof(answer))
+		if((size_t)write(sock_service, (char*)answer, sizeof(answer)) < sizeof(answer))
 		{
 			fprintf(stderr, "ERROR: Failed to write the answer. (errno = %d)\n", errno);
 			exit(EXIT_FAILURE);

@@ -1,0 +1,3 @@
+#!/bin/bash
+hex=$(cat $2 | xxd -p -c 9999)
+multichain-cli chain1 publish stream1 $1 $hex
